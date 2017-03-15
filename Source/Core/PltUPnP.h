@@ -6,6 +6,8 @@
 | All rights reserved.
 | http://www.plutinosoft.com
 |
+  2014/10/04 ume
+ 
 | This program is free software; you can redistribute it and/or
 | modify it under the terms of the GNU General Public License
 | as published by the Free Software Foundation; either version 2
@@ -124,6 +126,21 @@ public:
      @param ignore boolean to ignore devices in context
      */
 	void SetIgnoreLocalUUIDs(bool ignore) { m_IgnoreLocalUUIDs = ignore; }
+    
+    // add by ume
+    // kokokara
+    NPT_List<PLT_DeviceDataReference> getRootDevice();
+    const PLT_DeviceDataReference getDeviceData();
+    const PLT_DeviceDataReference getDeviceDatas(int number);
+    void friendlyNames();
+    const char* getFriendlyNames(int number);
+    int getCount();
+    const char* getUUID(int number);
+    const char* getDeviceType(int number);
+    PLT_ActionDesc* getActionDesc(int number, const char* serviceype);
+    PLT_ArgumentDesc* getArgumentDesc(int number, char* serviceType, char* serviceName, char* argumentName);
+    const char* getArgument_DeviceType(PLT_ArgumentDesc* argumentDesc);
+    // kokomade
 
 private:
     // members

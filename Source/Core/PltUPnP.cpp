@@ -30,6 +30,7 @@
 | 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 | http://www.gnu.org/licenses/gpl-2.0.html
 |
+|
 ****************************************************************/
 
 /*----------------------------------------------------------------------
@@ -165,22 +166,26 @@ PLT_UPnP::Start()
     
     /* Create multicast socket and bind on 1900. If other apps didn't
        play nicely by setting the REUSE_ADDR flag, this could fail */
-    NPT_Reference<NPT_UdpMulticastSocket> socket(new NPT_UdpMulticastSocket(NPT_SOCKET_FLAG_CANCELLABLE));
+    NPT_Reference<NPT_UdpMulticastSocket> socket(new NPT_UdpMulticastSocket());
     NPT_CHECK_SEVERE(socket->Bind(NPT_SocketAddress(NPT_IpAddress::Any, 1900), true));
+    
     
     /* Join multicast group for every ip we found */
     NPT_CHECK_SEVERE(ips.ApplyUntil(PLT_SsdpInitMulticastIterator(socket.AsPointer()),
                                     NPT_UntilResultNotEquals(NPT_SUCCESS)));
+    
 
     /* create the ssdp listener */
     m_SsdpListenTask = new PLT_SsdpListenTask(socket.AsPointer());
     socket.Detach();
     NPT_Reference<PLT_TaskManager> taskManager(new PLT_TaskManager());
     NPT_CHECK_SEVERE(taskManager->StartTask(m_SsdpListenTask));
-
+    
     /* start devices & ctrlpoints */
     m_CtrlPoints.Apply(PLT_UPnP_CtrlPointStartIterator(m_SsdpListenTask));
     m_Devices.Apply(PLT_UPnP_DeviceStartIterator(m_SsdpListenTask));
+    
+    NPT_CHECK_SEVERE(NPT_SUCCESS);
 
     m_TaskManager = taskManager;
     m_Started = true;
@@ -296,3 +301,187 @@ PLT_UPnP::RemoveCtrlPoint(PLT_CtrlPointReference& ctrl_point)
     return m_CtrlPoints.Remove(ctrl_point);
 }
 
+// add by ume
+NPT_List<PLT_DeviceDataReference>
+PLT_UPnP::getRootDevice()
+{
+    NPT_List<NPT_Reference<PLT_CtrlPoint> >::Iterator ctrlPoint = m_CtrlPoints.GetFirstItem();
+    NPT_Reference<PLT_CtrlPoint>* data = ctrlPoint.operator->();
+    PLT_CtrlPoint* object = data->operator->();
+    NPT_List<PLT_DeviceDataReference> root_device = object->m_RootDevices;
+    
+    return root_device;
+}
+
+const PLT_DeviceDataReference
+PLT_UPnP::getDeviceData()
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    return deviceData.operator*();
+}
+
+const PLT_DeviceDataReference
+PLT_UPnP::getDeviceDatas(int number)
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    int i=0;
+    while (i<number) {
+        deviceData.operator++();
+        i++;
+    }
+   return deviceData.operator*();
+}
+
+// FriendlyName Log
+void
+PLT_UPnP::friendlyNames()
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    
+    int count = root_device.GetItemCount();
+    NPT_LOG_INFO_1("deviceCount:%d", count);
+    
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    for (int i=1; i<=count; i++) {
+        PLT_DeviceDataReference& data_device = deviceData.operator*();
+        NPT_LOG_INFO_1("%s", (const char*)data_device->GetFriendlyName());
+        deviceData.operator++();
+    }
+}
+
+// return FriendlyName
+const char*
+PLT_UPnP::getFriendlyNames(int number)
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    int i=0;
+    while (i<number) {
+        deviceData.operator++();
+        i++;
+    }
+    PLT_DeviceDataReference& data_device = deviceData.operator*();
+    return (const char*)data_device->GetFriendlyName();
+}
+
+int
+PLT_UPnP::getCount()
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    return root_device.GetItemCount();
+}
+
+const char*
+PLT_UPnP::getUUID(int number)
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    int i=0;
+    while (i<number) {
+        deviceData.operator++();
+        i++;
+    }
+    PLT_DeviceDataReference& data_device = deviceData.operator*();
+    return (const char*)data_device->GetUUID();
+}
+
+const char*
+PLT_UPnP::getDeviceType(int number)
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    int i=0;
+    while (i<number) {
+        deviceData.operator++();
+        i++;
+    }
+    PLT_DeviceDataReference& data_device = deviceData.operator*();
+    return (const char*)data_device->GetType();
+}
+
+PLT_ActionDesc*
+PLT_UPnP::getActionDesc(int number, const char* serviceType)
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    int i=0;
+    while (i<number) {
+        deviceData.operator++();
+        i++;
+    }
+    PLT_DeviceDataReference& data_device = deviceData.operator*();
+    NPT_Array<PLT_Service*> service_array = data_device->GetServices();
+    int count = service_array.GetItemCount();
+    PLT_Service* service;
+    PLT_ActionDesc *actionDesc_item;
+    
+    i=0;
+    while (i<count) {
+        service = service_array.operator[](i);
+        const char* service_type;
+        service_type = service->GetServiceType();
+        if (strstr(service_type, serviceType) != NULL) {
+            NPT_Array<PLT_ActionDesc*> actionDesc = service->GetActionDescs();
+            int count_a = actionDesc.GetItemCount();
+            int j=0;
+            while (j<count_a) {
+                actionDesc_item = actionDesc.operator[](j);
+                return actionDesc_item;
+            }
+        }
+        i++;
+    }
+    return actionDesc_item;
+}
+
+/*
+ 
+*/
+PLT_ArgumentDesc*
+PLT_UPnP::getArgumentDesc(int number, char* serviceType, char* serviceName, char* argumentName)
+{
+    NPT_List<PLT_DeviceDataReference> root_device = getRootDevice();
+    NPT_List<PLT_DeviceDataReference>::Iterator deviceData = root_device.GetFirstItem();
+    int i=0;
+    while (i<number) {
+        deviceData.operator++();
+        i++;
+    }
+    PLT_DeviceDataReference& data_device = deviceData.operator*();
+    NPT_Array<PLT_Service*> service_array = data_device->GetServices();
+    int count = service_array.GetItemCount();
+    PLT_Service* service;
+    PLT_ActionDesc *actionDesc_item;
+    PLT_ArgumentDesc *argumentDesc;
+    
+    i=0;
+    while (i<count) {
+        service = service_array.operator[](i);
+        const char* service_type;
+        service_type = service->GetServiceType();
+        if (strstr(service_type, serviceType) != NULL) {
+            NPT_Array<PLT_ActionDesc*> actionDesc = service->GetActionDescs();
+            int count_a = actionDesc.GetItemCount();
+            int j=0;
+            while (j<count_a) {
+                actionDesc_item = actionDesc.operator[](j);
+                if (strstr(actionDesc_item->GetName(), serviceName)) {
+                    argumentDesc = actionDesc_item->GetArgumentDesc(argumentName);
+                    return argumentDesc;
+                    break;
+                }
+            }
+        }
+        i++;
+    }
+    return argumentDesc;
+}
+
+const char*
+PLT_UPnP::getArgument_DeviceType(PLT_ArgumentDesc* argumentDesc)
+{
+    PLT_StateVariable* stateVar = argumentDesc->GetRelatedStateVariable();
+    return stateVar->GetDataType();
+}
