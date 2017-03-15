@@ -127,20 +127,92 @@ public:
      */
 	void SetIgnoreLocalUUIDs(bool ignore) { m_IgnoreLocalUUIDs = ignore; }
     
-    // add by ume
-    // kokokara
+    /**
+     * @brief ctrlPointからrootDevice（発見されたデバイスのリスト）を取得
+     * @author Rina Umeyama
+     * @return rootDevice
+     **/
     NPT_List<PLT_DeviceDataReference> getRootDevice();
+    
+    /**
+     * @brief rootDeviceからdeviceData（発見されたデバイスの情報のリスト）の先頭を取得
+     * @author Rina Umeyama
+     * @return deviceData
+     **/
     const PLT_DeviceDataReference getDeviceData();
+    
+    /**
+     * @brief rootDeviceから指定した番号のdeviceData（発見されたデバイスの情報のリスト）を取得
+     * @author Rina Umeyama
+     * @param number 取得したいデバイスの番号
+     * @return deviceData
+     **/
     const PLT_DeviceDataReference getDeviceDatas(int number);
+    
+    /**
+     * @brief deviceDataから全てのFriendlyName（デバイス名）を取得してLogを表示
+     * @author Rina Umeyama
+     **/
     void friendlyNames();
+    
+    /**
+     * @brief deviceDataから指定した番号のデバイスのFriendlyName（デバイス名）を取得
+     * @author Rina Umeyama
+     * @param number デバイスの番号
+     * @return FriendlyNmae
+     **/
     const char* getFriendlyNames(int number);
+    
+    /**
+     * @brief rootDeviceに格納されているデバイス数を取得
+     * @author Rina Umeyama
+     * @return デバイス数
+     **/
     int getCount();
+    
+    /**
+     * @brief deviceDataから指定した番号のデバイスのUUIDを取得
+     * @author Rina Umeyama
+     * @param デバイスの番号
+     * @return UUID
+     **/
     const char* getUUID(int number);
+    
+    /**
+     * @brief deviceDataから指定した番号のデバイスのデバイスタイプ（DMS，DMR等）を取得
+     * @author Rina Umeyama
+     * @param number デバイスの番号
+     * @return デバイスタイプ
+     **/
     const char* getDeviceType(int number);
+    
+    /**
+     * @brief deviceDataから指定した番号のデバイスのActionDesc（アクションDescription）を取得
+     * @author Rina Umeyama
+     * @param number デバイスの番号
+     * @param serviceType（Content Directory等のサービスの種類）
+     * @return ActionDesc
+     **/
     PLT_ActionDesc* getActionDesc(int number, const char* serviceype);
+    
+    /**
+     * @brief ActionDescから指定した番号のデバイスのArgumentDesc（アクションの引数のDescription）を取得
+     * @author Rina Umeyama
+     * @param number デバイスの番号
+     * @param serviceType サービスの種類（Content Directory等）
+     * @param serviceName サービス名（Play, Browse等）
+     * @param argumentName Descriptionを取得したい引名
+     * @return ArgumentDesc
+     **/
     PLT_ArgumentDesc* getArgumentDesc(int number, char* serviceType, char* serviceName, char* argumentName);
+    
+    /**
+     * @brief 指定したArgumentDesc（アクションの引数のDescription）のrelatedStateVariableを取得
+     * @author Rina Umeyama
+     * @param argumentDesc
+     * @return relatedStateVariable
+     **/
     const char* getArgument_DeviceType(PLT_ArgumentDesc* argumentDesc);
-    // kokomade
 
 private:
     // members

@@ -30,7 +30,6 @@
 | 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 | http://www.gnu.org/licenses/gpl-2.0.html
 |
-|
 ****************************************************************/
 
 /*----------------------------------------------------------------------
@@ -169,12 +168,10 @@ PLT_UPnP::Start()
     NPT_Reference<NPT_UdpMulticastSocket> socket(new NPT_UdpMulticastSocket());
     NPT_CHECK_SEVERE(socket->Bind(NPT_SocketAddress(NPT_IpAddress::Any, 1900), true));
     
-    
     /* Join multicast group for every ip we found */
     NPT_CHECK_SEVERE(ips.ApplyUntil(PLT_SsdpInitMulticastIterator(socket.AsPointer()),
                                     NPT_UntilResultNotEquals(NPT_SUCCESS)));
     
-
     /* create the ssdp listener */
     m_SsdpListenTask = new PLT_SsdpListenTask(socket.AsPointer());
     socket.Detach();
@@ -301,7 +298,11 @@ PLT_UPnP::RemoveCtrlPoint(PLT_CtrlPointReference& ctrl_point)
     return m_CtrlPoints.Remove(ctrl_point);
 }
 
-// add by ume
+/**
+ * @brief ctrlPointからrootDevice（発見されたデバイスのリスト）を取得
+ * @author Rina Umeyama
+ * @return rootDevice
+ **/
 NPT_List<PLT_DeviceDataReference>
 PLT_UPnP::getRootDevice()
 {
@@ -313,6 +314,11 @@ PLT_UPnP::getRootDevice()
     return root_device;
 }
 
+/**
+ * @brief rootDeviceからdeviceData（発見されたデバイスの情報のリスト）の先頭を取得
+ * @author Rina Umeyama
+ * @return deviceData
+ **/
 const PLT_DeviceDataReference
 PLT_UPnP::getDeviceData()
 {
@@ -321,6 +327,12 @@ PLT_UPnP::getDeviceData()
     return deviceData.operator*();
 }
 
+/**
+ * @brief rootDeviceから指定した番号のdeviceData（発見されたデバイスの情報のリスト）を取得
+ * @author Rina Umeyama
+ * @param number 取得したいデバイスの番号
+ * @return deviceData
+ **/
 const PLT_DeviceDataReference
 PLT_UPnP::getDeviceDatas(int number)
 {
@@ -334,7 +346,10 @@ PLT_UPnP::getDeviceDatas(int number)
    return deviceData.operator*();
 }
 
-// FriendlyName Log
+/**
+ * @brief deviceDataから全てのFriendlyName（デバイス名）を取得してLogを表示
+ * @author Rina Umeyama
+ **/
 void
 PLT_UPnP::friendlyNames()
 {
@@ -351,7 +366,12 @@ PLT_UPnP::friendlyNames()
     }
 }
 
-// return FriendlyName
+/**
+ * @brief deviceDataから指定した番号のデバイスのFriendlyName（デバイス名）を取得
+ * @author Rina Umeyama
+ * @param number デバイスの番号
+ * @return FriendlyNmae
+ **/
 const char*
 PLT_UPnP::getFriendlyNames(int number)
 {
@@ -366,6 +386,11 @@ PLT_UPnP::getFriendlyNames(int number)
     return (const char*)data_device->GetFriendlyName();
 }
 
+/**
+ * @brief rootDeviceに格納されているデバイス数を取得
+ * @author Rina Umeyama
+ * @return デバイス数
+ **/
 int
 PLT_UPnP::getCount()
 {
@@ -373,6 +398,12 @@ PLT_UPnP::getCount()
     return root_device.GetItemCount();
 }
 
+/**
+ * @brief deviceDataから指定した番号のデバイスのUUIDを取得
+ * @author Rina Umeyama
+ * @param デバイスの番号
+ * @return UUID
+ **/
 const char*
 PLT_UPnP::getUUID(int number)
 {
@@ -387,6 +418,12 @@ PLT_UPnP::getUUID(int number)
     return (const char*)data_device->GetUUID();
 }
 
+/**
+ * @brief deviceDataから指定した番号のデバイスのデバイスタイプ（DMS，DMR等）を取得
+ * @author Rina Umeyama
+ * @param number デバイスの番号
+ * @return デバイスタイプ
+ **/
 const char*
 PLT_UPnP::getDeviceType(int number)
 {
@@ -401,6 +438,13 @@ PLT_UPnP::getDeviceType(int number)
     return (const char*)data_device->GetType();
 }
 
+/**
+ * @brief deviceDataから指定した番号のデバイスのActionDesc（アクションDescription）を取得
+ * @author Rina Umeyama
+ * @param number デバイスの番号
+ * @param serviceType（Content Directory等のサービスの種類）
+ * @return ActionDesc
+ **/
 PLT_ActionDesc*
 PLT_UPnP::getActionDesc(int number, const char* serviceType)
 {
@@ -436,9 +480,15 @@ PLT_UPnP::getActionDesc(int number, const char* serviceType)
     return actionDesc_item;
 }
 
-/*
- 
-*/
+/**
+ * @brief ActionDescから指定した番号のデバイスのArgumentDesc（アクションの引数のDescription）を取得
+ * @author Rina Umeyama
+ * @param number デバイスの番号
+ * @param serviceType サービスの種類（Content Directory等）
+ * @param serviceName サービス名（Play, Browse等）
+ * @param argumentName Descriptionを取得したい引名
+ * @return ArgumentDesc
+ **/
 PLT_ArgumentDesc*
 PLT_UPnP::getArgumentDesc(int number, char* serviceType, char* serviceName, char* argumentName)
 {
@@ -479,6 +529,12 @@ PLT_UPnP::getArgumentDesc(int number, char* serviceType, char* serviceName, char
     return argumentDesc;
 }
 
+/**
+ * @brief 指定したArgumentDesc（アクションの引数のDescription）のrelatedStateVariableを取得
+ * @author Rina Umeyama
+ * @param argumentDesc
+ * @return relatedStateVariable
+ **/
 const char*
 PLT_UPnP::getArgument_DeviceType(PLT_ArgumentDesc* argumentDesc)
 {
